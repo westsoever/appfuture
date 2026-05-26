@@ -1,4 +1,7 @@
 import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def explain_region(row) -> str:
