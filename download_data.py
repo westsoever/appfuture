@@ -1,6 +1,6 @@
 """Run once before the hackathon to cache all data files locally."""
 import os
-from bucket_access.bucket_utils import download_file
+from vibraint.bucket_access.bucket_utils import download_file
 
 os.makedirs("data", exist_ok=True)
 
