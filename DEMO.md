@@ -14,8 +14,8 @@ Click Page 2. Click NTS row.
 Page 3 opens with NTS pre-selected. Show brain slice + violin.
 
 ## 1:15 — The surprising finding
-Go back to Page 2. Click [SURPRISING_REGION_TBD — fill in during Phase 3].
-"This one we did NOT expect. [one-sentence biological reason it's surprising]"
+Go back to Page 2. Click MD (Mediodorsal nucleus of thalamus).
+"This one we did NOT expect. The mediodorsal thalamus is a key relay between prefrontal cortex and limbic circuits — its activation suggests Semaglutide is reshaping cognitive control and decision-making, not just hunger signalling."
 Click "Explain this region" → Claude streams 3 sentences.
 
 ## 1:50 — Close

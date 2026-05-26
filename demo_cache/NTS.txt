@@ -1,0 +1,5 @@
+1. The Nucleus of the Solitary Tract (NTS) is a hub in the brainstem that receives real-time signals from the gut, heart, and vagus nerve—it's essentially the brain's first stop for "I'm full," "I feel nauseated," and "my blood pressure is changing" messages, and it relays these to appetite and autonomic control centers.
+
+2. The nearly 7-fold jump in NTS neural activity (from 82 to 560 active cells/mm³) suggests that Semaglutide doesn't just act on the pancreas—it directly engages brainstem satiety circuits, mimicking the neural signature of having just eaten a large meal and tapping into the same pathway that vagus-nerve stimulation devices target.
+
+3. This matters because the NTS projects to reward and craving circuits (like the nucleus accumbens and hypothalamus), which helps explain why GLP-1 drugs not only re

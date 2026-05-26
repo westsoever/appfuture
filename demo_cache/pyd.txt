@@ -1,0 +1,5 @@
+1. The pyramidal decussation is not a processing hub but a "cable crossing" at the base of the brainstem, where motor command fibers from each side of the brain's cortex cross over to control the opposite side of the body—essentially the wiring junction responsible for why your left brain moves your right arm and vice versa.
+
+2. A drop in c-Fos signal here (roughly a 10-fold reduction, from ~691 to ~71 active cells/mm³) likely doesn't reflect Semaglutide acting on appetite circuits directly, but rather reduced traffic of motor signals passing through—consistent with the well-documented decrease in general locomotor activity and exploratory movement seen in GLP-1-treated mice, though the modest p-value (0.041, uncorrected for multiple comparisons) means this finding should be treated as preliminary.
+
+3. For drug development, this matters as a tractable biomarker of the "behavioral

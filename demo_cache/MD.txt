@@ -1,0 +1,5 @@
+The mediodorsal nucleus of the thalamus (MD) acts as a relay hub connecting deep emotional and reward centers (like the amygdala and ventral striatum) to the prefrontal cortex, helping translate gut feelings about food, drugs, or outcomes into conscious decisions about whether something is worth pursuing—and it's a key player in updating the "value" we assign to rewards.
+
+The nearly 4-fold jump in MD activity (74 vs 19 active cells/mm³) suggests Semaglutide isn't just acting on hunger circuits in the hypothalamus as classically described, but is reaching into higher-order cognitive-evaluative circuitry, potentially nudging the prefrontal cortex to reassign lower value to food (and possibly other rewards) rather than simply making the stomach feel full.
+
+This matters because it offers a mechanistic clue for the striking real-world reports of GLP-1

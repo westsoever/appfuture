@@ -16,7 +16,7 @@ def rank_regions(stats: pd.DataFrame) -> pd.DataFrame:
 def volcano_data(stats: pd.DataFrame) -> pd.DataFrame:
     """Add neg_log10_p column and significance label for volcano plot."""
     df = stats[stats["is_lowest_level"] == True].copy()
-    df["neg_log10_p"] = -np.log10(df["p_corrected"].clip(lower=1e-10))
+    df["neg_log10_p"] = -np.log10(df["p_value"].clip(lower=1e-10))
     df["significance"] = "ns"
     df.loc[df["significant_uncorrected"] == True, "significance"] = "uncorrected"
     return df
