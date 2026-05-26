@@ -1,40 +1,60 @@
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
-
-_cache: dict = {}
-
-
-def _load(path: str) -> np.ndarray:
-    if path not in _cache:
-        _cache[path] = sitk.GetArrayFromImage(sitk.ReadImage(path))
-    return _cache[path]
+import streamlit as st
 
 
-def get_slice(acronym: str, axis: int = 1) -> dict:
+@st.cache_resource
+def _load_volumes():
+    anatomy = sitk.GetArrayFromImage(sitk.ReadImage("data/anatomy.nii.gz"))
+    regions = sitk.GetArrayFromImage(sitk.ReadImage("data/regions.nii.gz"))
+    diff    = sitk.GetArrayFromImage(sitk.ReadImage("data/diff_map.nii.gz"))
+    return anatomy, regions, diff
+
+
+@st.cache_data(show_spinner=False)
+def get_slice(acronym: str, axis: int = 1) -> dict | None:
     """Return coronal (axis=1) 2D slices for anatomy, diff map, and region mask.
 
     SimpleITK arrays are (Z, Y, X). axis=1 = coronal (anterior-posterior).
     Returns dict with keys: anatomy, diff, mask — all 2D numpy arrays.
+    Returns None if acronym is not found or region mask is empty.
     """
-    anatomy = _load("data/anatomy.nii.gz")
-    diff = _load("data/diff_map.nii.gz")
-    regions = _load("data/regions.nii.gz").astype(int)
-
     hierarchy = pd.read_csv("data/atlas_hierarchy.csv")
     match = hierarchy[hierarchy["acronym"] == acronym]
     if match.empty:
-        mask_2d = None
-        idx = anatomy.shape[axis] // 2
-    else:
-        label_id = int(match.iloc[0]["label"])
-        region_mask = (regions == label_id)
-        counts = region_mask.sum(axis=(0, 2)) if axis == 1 else region_mask.sum(axis=(1, 2))
-        idx = int(counts.argmax()) if counts.max() > 0 else anatomy.shape[axis] // 2
-        mask_2d = np.take(region_mask, idx, axis=axis)
+        return None
+
+    anatomy, regions, diff = _load_volumes()
+    regions_int = regions.astype(int)
+
+    label_id = int(match.iloc[0]["id"])
+    region_mask = (regions_int == label_id)
+
+    counts = region_mask.sum(axis=(0, 2)) if axis == 1 else region_mask.sum(axis=(1, 2))
+    if counts.max() == 0:
+        return None
+
+    idx = int(counts.argmax())
+    mask_2d = np.take(region_mask, idx, axis=axis)
 
     return {
         "anatomy": np.take(anatomy, idx, axis=axis),
-        "diff": np.take(diff, idx, axis=axis),
-        "mask": mask_2d,
+        "diff":    np.take(diff, idx, axis=axis),
+        "mask":    mask_2d,
     }
+
+
+def render_overlay(slice_dict: dict):
+    """Render diff map with region mask overlay as a matplotlib figure."""
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.imshow(slice_dict["diff"], cmap="RdBu_r", vmin=-3, vmax=3)
+    ax.imshow(
+        np.ma.masked_where(slice_dict["mask"] == 0, slice_dict["mask"]),
+        cmap="Greens",
+        alpha=0.5,
+    )
+    ax.axis("off")
+    return fig

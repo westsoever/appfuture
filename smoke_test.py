@@ -2,6 +2,9 @@
 import os
 import sys
 
+from dotenv import load_dotenv
+load_dotenv()
+
 PASS = "\033[92m✓\033[0m"
 FAIL = "\033[91m✗\033[0m"
 errors = 0
