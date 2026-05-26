@@ -27,7 +27,7 @@ def get_slice(acronym: str, axis: int = 1) -> dict:
         mask_2d = None
         idx = anatomy.shape[axis] // 2
     else:
-        label_id = int(match.iloc[0]["label"])
+        label_id = int(match.iloc[0]["id"])
         region_mask = (regions == label_id)
         counts = region_mask.sum(axis=(0, 2)) if axis == 1 else region_mask.sum(axis=(1, 2))
         idx = int(counts.argmax()) if counts.max() > 0 else anatomy.shape[axis] // 2
