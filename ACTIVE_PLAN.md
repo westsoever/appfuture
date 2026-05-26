@@ -1,5 +1,5 @@
 # Explainable Brains — Active Plan
-_Last updated: May 26 ~18:55 · Agent 3 (Block B) landed (31a004f); dotenv auto-load shipped (8bae260); leaked key rotated; only Agent 2 (Block A) still in flight_
+_Last updated: May 26 ~19:05 · Agent 2 (Block A llm.py) DONE — all three P3 blocks (A/B/C) on branch. Next: Agent 5 verification gate._
 
 ## Current Focus
 On branch `p3-claude-viz`, 5 commits ahead of origin. Blocks B+C done, handfix done, `.env` auto-loads via `python-dotenv` (smoke 19/19 from fresh shell). Only outstanding code work: **Agent 2 — Block A `llm.py`** still running in user's other terminal. Once it commits, run Agent 5 verification gate → Agent 6 → Agent 7 merge.
@@ -7,10 +7,10 @@ On branch `p3-claude-viz`, 5 commits ahead of origin. Blocks B+C done, handfix d
 ## Tasks
 
 ### In Progress
-- [ ] **Agent 2 — Block A `llm.py`** — cached `explain_region` + `explain_top_findings` with prompt cache. Heads-up: `llm.py` now imports `dotenv` at top (commit 8bae260) — Agent 2 may hit a trivial conflict on the import block.
+_(none — Agent 2 landed; ready for Agent 5)_
 
 ### Up Next — P3 subagent launch queue
-5. **Agent 5** — verification + anti-pattern grep sweep (§9 integration checklist) — fire as soon as Agent 2 lands
+5. **Agent 5** — verification + anti-pattern grep sweep (§9 integration checklist) — fire NOW
 6. **Agent 6** — Phase 3/4 surprising-region pick + summarize button wire-up + `demo_cache/*.txt` prewarm
 7. **Agent 7** — merge `p3-claude-viz` → `main`
 
@@ -22,6 +22,7 @@ On branch `p3-claude-viz`, 5 commits ahead of origin. Blocks B+C done, handfix d
 - [ ] Run `/demo` — pick 3 best regions, rehearse 2-min script
 
 ### Done
+- [x] **Agent 2 — Block A `llm.py` (May 26 ~19:00, this session)** — `_explain_cached(acronym, region_name, log2fc, p_uncorr, mean_a, mean_b)` `@st.cache_data(show_spinner=False)` wrapping the Agent-1 3-sentence prompt (kept intact). Added `explain_top_findings(top_df)` with `cache_control: ephemeral` on the LARGE_CONTEXT block, `claude-opus-4-7`, max_tokens=400. Verification: `explain_region(load_stats().iloc[0])` → 802 chars; `explain_top_findings(rank_regions.head(10))` → 987 chars opening on NTS / GLP-1 satiety story. All anti-pattern greps empty (`client.completions`, `claude-3`, `p_uncorrected`, `temperature=0`, `response.completion`).
 - [x] **dotenv auto-load (May 26 ~18:55, commit 8bae260)** — `load_dotenv()` at top of `llm.py` + `smoke_test.py`; smoke now passes 19/19 from fresh shell with no shell export. Leaked key rotated, `.env` updated.
 - [x] **Agent 3 — Block B `brain_viz.py` (May 26 ~18:50, commit 31a004f)** — `@st.cache_resource _load_volumes()`, `@st.cache_data get_slice` (kept argmax centroid), returns None on missing/empty mask, `render_overlay()` helper (RdBu_r vmin=-3 vmax=3, Greens mask alpha=0.5, figsize 5×4). Voxel counts: NTS=772, ARH=386, LHA=1489. Anti-pattern grep `.get_data()` empty.
 - [x] **Significance handfix (May 26 ~18:38, commit 96d9688)** — `significant_corrected` → `significant_uncorrected` in `analysis.py:21,23` and `app.py:37,53`. Also fixed `Styler.applymap` → `.map` (pandas 3.x rename) so Ranking tab renders.

@@ -44,7 +44,7 @@ This can be done by hand or as a tiny agent — either way it must land on `p3-c
 
 ---
 
-## Agent 2 — Block A: `llm.py` extensions
+## Agent 2 — Block A: `llm.py` extensions  [DONE — session "agent2", see ACTIVE_PLAN.md Done]
 
 ```
 subagent_type: ruflo-core:coder
@@ -83,7 +83,7 @@ Report: commit sha, output char lengths, any anti-pattern grep that wasn't empty
 
 ---
 
-## Agent 3 — Block B: `brain_viz.py` extensions (parallel with Agent 2)
+## Agent 3 — Block B: `brain_viz.py` extensions (parallel with Agent 2)  [DONE — commit 31a004f]
 
 ```
 subagent_type: ruflo-core:coder
@@ -280,9 +280,11 @@ Report: merge commit sha, files changed, any conflicts.
 
 ```
 [done] Agent 1   — preflight (commit 77b33e9)
-[next] handfix  — significant_corrected → significant_uncorrected
-       Agent 2 ∥ Agent 3 ∥ Agent 4   (parallel)
-       Agent 5   — verification gate
+[done] handfix  — significant_corrected → significant_uncorrected (96d9688)
+[done] Agent 2  — Block A llm.py (this commit)
+[done] Agent 3  — Block B brain_viz.py (31a004f)
+[done] Agent 4  — Block C DEMO.md (50fe81e)
+[next] Agent 5   — verification gate
        Agent 6   — phase 3+4 (only if Agent 5 PASS)
        Agent 7   — merge to main
 ```
