@@ -11,7 +11,7 @@ Run at the end of every session. Takes 2 minutes and means the next session pick
 ls -la *.py && git diff --stat 2>/dev/null || true
 ```
 
-For every item in "In Progress" and "Up Next" in `ACTIVE_PLAN.md`:
+For every item in "In Progress" and "Up Next" in both `ACTIVE_PLAN.md` and `P3_PLAN.md`:
 - If it's done → move to "Done"
 - If it's partially done → keep in "In Progress", add a note
 - If it's no longer relevant → remove it

@@ -1,6 +1,6 @@
-# Explainable Brains Hackathon — 4-Person, 3-Hour Plan
+# Explainable Brains Hackathon — 3-Person, 3-Hour Plan
 **Event:** May 26, 2026 · Copenhagen
-**Team:** 4 people, parallel streams
+**Team:** 3 people, parallel streams (P3 owns Claude + Viz + Demo)
 **Build window:** 3 hours (T+0:00 → T+3:00)
 **Challenge:** B — Guided brain data exploration
 
@@ -51,14 +51,18 @@ Allowed APIs (cite when writing code):
 
 | Person | Stream | Owns files | Skills needed |
 |---|---|---|---|
-| **P1 — Data Lead** | Data loading + tabular analysis | `data_loader.py`, `analysis.py` (volcano + ranking parts) | pandas |
+| **P1 — Data Lead** | Data loading + tabular analysis | `data_loader.py`, `analysis.py` | pandas |
 | **P2 — UI Lead** | Streamlit app shell + 3 pages + state | `app.py`, `CLAUDE.md` | streamlit, plotly |
-| **P3 — Claude Lead** | All Anthropic SDK code, prompts, caching, streaming | `llm_explain.py`, `llm_chat.py` | Anthropic SDK |
-| **P4 — Brain Viz + Demo Lead** | NIfTI slice extraction + matplotlib overlay + demo script | `analysis.py::get_brain_slice`, `viz.py`, `DEMO.md` | nibabel, matplotlib, presenting |
+| **P3 — Claude + Viz + Demo Lead** | All Anthropic SDK code, NIfTI rendering, demo script | `llm.py`, `brain_viz.py`, `DEMO.md` | Anthropic SDK, nibabel, matplotlib, presenting |
 
-**Single shared file (`analysis.py`)** — P1 and P4 both edit. Split by function: P1 owns `prepare_volcano`, `get_region_ranking`; P4 owns `get_brain_slice`. No overlap.
+**No shared-file conflicts.** P1 owns all of `analysis.py` (volcano + ranking + any helpers). P3 owns brain-slice extraction in `brain_viz.py` — kept out of `analysis.py` per current `CLAUDE.md` module map.
 
-Each person runs **one dedicated Claude Code session** in their own branch (`p1-data`, `p2-ui`, etc.). Merge to `main` at integration gates.
+Each person runs **one dedicated Claude Code session** in their own branch (`p1-data`, `p2-ui`, `p3-claude-viz`). Merge to `main` at integration gates.
+
+**P3 workload note:** combined role is heavy. Defaults if time-pressed:
+- Skip anatomy reference panel (nice-to-have, not in demo script)
+- Defer `chat_about_data` streaming — ship `explain_region` first, add chat in Phase 4 only if Phase 2 finishes clean
+- P2 wires the chat sidebar UI shell; P3 only supplies the function
 
 ---
 
@@ -67,11 +71,11 @@ Each person runs **one dedicated Claude Code session** in their own branch (`p1-
 **Goal:** everyone on `main` with working env, data downloaded, API key live.
 
 ### Tasks
-- [ ] **All:** `git pull`, `conda activate explainable-brains`, `python smoke_test.py` (from existing PLAN.md Phase 4)
+- [ ] **All:** `git pull`, `conda activate explainable-brains`, `python smoke_test.py`
 - [ ] **All:** confirm `echo $ANTHROPIC_API_KEY` is set
 - [ ] **P3:** claim hackathon API credits at the link, paste into team channel
-- [ ] **P2:** confirm `streamlit run app.py` shows the skeleton (from existing PLAN.md Phase 3)
-- [ ] **All:** create personal branches: `git checkout -b p<N>-<stream>`
+- [ ] **P2:** confirm `streamlit run app.py` shows the skeleton
+- [ ] **All:** create personal branches: `git checkout -b p<N>-<stream>` (P3 uses `p3-claude-viz`)
 - [ ] **All:** open `CLAUDE.md` in your editor — Claude Code reads it as context
 
 ### Verification
@@ -86,7 +90,7 @@ Each person runs **one dedicated Claude Code session** in their own branch (`p1-
 
 ## Phase 2 — Parallel build (T+0:20 → T+1:30, **70 min**)
 
-Four independent streams. Each person directs their Claude Code session to copy patterns from the existing skeleton (PLAN.md Phase 3) and extend.
+Three independent streams. Each person directs their Claude Code session to copy patterns from the existing skeleton and extend.
 
 ### P1 — Data Lead
 
@@ -132,59 +136,48 @@ Four independent streams. Each person directs their Claude Code session to copy 
 - Do NOT compute statistics inside `app.py`. Call functions from `analysis.py`.
 - Do NOT pass `use_container_width=True` to `st.plotly_chart` AND set explicit `width=` — pick one.
 
-### P3 — Claude Lead
+### P3 — Claude + Viz + Demo Lead
 
-**Copy from:** `PLAN.md` §3d (`llm_explain.py`).
+**Owns:** `llm.py`, `brain_viz.py`, `DEMO.md`. Single branch `p3-claude-viz`.
 
-**Tasks:**
-1. Implement `explain_region(region_name, acronym, log2fc, p_value, mean_a, mean_b)` per skeleton. Use `model="claude-opus-4-7"`, `max_tokens=250`.
-2. Add `explain_top_findings(top_df)` that takes the top-10 ranked regions and returns a 4-sentence narrative summary of the whole study. Cache the prompt prefix with `cache_control: ephemeral` so repeated calls during the demo are cheap.
-3. Add `chat_about_data(question, context_df)` in new file `llm_chat.py`:
-   - Takes a free-text question from the user
-   - Injects a compact summary of `context_df` (top regions, significant counts) as a system message
-   - **Streams** the response (use `stream=True`, iterate `content_block_delta` events) — wire to `st.write_stream`
-4. All API calls go through one client (`anthropic.Anthropic()` at module top) — do not re-instantiate per call.
-5. Wrap with `@st.cache_data(show_spinner=False)` for `explain_region` and `explain_top_findings` (deterministic inputs → cache works). Do NOT cache `chat_about_data` (free-text input).
+**Order tasks by demo-criticality. Ship 1–4 first; 5–7 are stretch.**
+
+**Tasks (in priority order):**
+
+**Block A — Claude wiring (T+0:20 → T+0:55, ~35 min)**
+1. **`llm.py::explain_region(row)`** — takes a single stats DataFrame row, returns 3-sentence plain English. Use `client.messages.create(model="claude-opus-4-7", max_tokens=250, messages=[...])`, return `response.content[0].text`. Single module-level `client = anthropic.Anthropic()`. Wrap with `@st.cache_data(show_spinner=False)` — convert row to a tuple of primitives for cache key (DataFrames aren't hashable).
+2. **`llm.py::explain_top_findings(top_df)`** — 4-sentence study summary over top-10 ranked regions. Use prompt caching: put the regions context block in `messages[0].content` with `"cache_control": {"type": "ephemeral"}`.
+
+**Block B — Brain viz (T+0:55 → T+1:25, ~30 min)**
+3. **`brain_viz.py::get_slice(acronym, axis=1)`** — already declared in `CLAUDE.md` module map. Loads `regions.nii.gz` + `diff_map.nii.gz` + `anatomy.nii.gz` via `@st.cache_resource` (large arrays). Look up integer label by acronym in `atlas_hierarchy.csv` (column is **`id`**, not `label` — see ACTIVE_PLAN data reality). Compute centroid Y-slice for that region's mask, return `{"anatomy": 2D, "diff": 2D, "mask": 2D}`. NIfTI axis 1 = coronal (Z, Y, X shape from SimpleITK).
+4. **Matplotlib overlay** — small helper or inline in `app.py` Page 3: `imshow(diff, cmap="RdBu_r", vmin=-3, vmax=3)` with `imshow(mask, cmap="Greens", alpha=0.5)` on top. Crash-safe: if mask sum == 0 return `None`, UI shows "no mask available".
+
+**Block C — Demo (T+1:25 → T+1:30, kick off; finish in Phase 4)**
+5. **`DEMO.md` skeleton** — write the 2-min script outline now. Slots for: (a) NTS = "expected, brainstem satiety hub", (b) one *surprising* hit (acronym TBD after Phase 3 integration), (c) closing line "drop in any Vibraint study". Concrete acronym for (b) filled in during Phase 3 once you see real data.
+
+**Stretch (Phase 4 if time):**
+6. **`llm.py::chat_about_data(question, context_df)`** — free-text sidebar Q&A. Use `with client.messages.stream(...) as stream: for text in stream.text_stream: yield text`. Wire to `st.write_stream`. Do NOT `@st.cache_data` (free-text input).
+7. **Anatomy reference panel** on Page 3 — second axes showing greyscale anatomy slice next to the diff slice.
 
 **Verification:**
-- `explain_region("NTS","NTS",0.8,0.001,100,180)` returns >50 chars, no exception
-- Second identical call returns in <50ms (cache hit on Streamlit side)
-- `chat_about_data("which region is most surprising?", top10)` streams visibly to terminal in a quick CLI test
-- No API call ever sends raw NIfTI bytes or full per-animal CSV — only aggregated stats
+- `python -c "from llm import explain_region; from data_loader import load_stats; print(explain_region(load_stats().iloc[0]))"` → ≥50 chars, no exception
+- Second identical call ≤50 ms (Streamlit cache hit)
+- Page 3 → select "NTS" → slice renders ≤3 s, region mask visibly inside diff signal
+- `DEMO.md` exists with timed script before T+1:30
+- No API call sends NIfTI bytes or per-animal CSV — only aggregated stats
 
 **Anti-pattern guard:**
-- Do NOT use `client.completions.create` — that's the old/deprecated API.
-- Do NOT read `response.completion` — use `response.content[0].text`.
-- Do NOT hardcode the API key in source. Use `anthropic.Anthropic()` (reads `ANTHROPIC_API_KEY` env var).
+- Do NOT use `client.completions.create` / `response.completion` — deprecated API.
+- Do NOT hardcode API key — `anthropic.Anthropic()` reads `ANTHROPIC_API_KEY` env var.
+- Do NOT use `nib.load(...).get_data()` — use `get_fdata()`.
+- Do NOT reload NIfTI on every render — `@st.cache_resource`, not `@st.cache_data`.
 - Do NOT pass `temperature=0` to "make it deterministic" then complain explanations are boring — leave default.
-
-### P4 — Brain Viz + Demo Lead
-
-**Copy from:** `PLAN.md` §3c (`get_brain_slice` function), §3e (matplotlib overlay block in Page 3).
-
-**Tasks:**
-1. Implement `get_brain_slice(region_acronym, atlas_df, regions_nii_path, diff_nii_path, axis="coronal")` per skeleton. Cache the NIfTI loads at module top — don't re-load on every call. Use `@st.cache_resource` for the nibabel images.
-2. Build the matplotlib overlay shown in PLAN.md §3e — diff_slice as `RdBu_r`, region mask in green at alpha 0.5.
-3. Add a small "Anatomy reference" panel on Page 3 that shows the same slice of `anatomy.nii.gz` (greyscale) next to the diff slice — gives biological grounding.
-4. Write `DEMO.md` containing:
-   - Exact 2-minute demo script (start from PLAN.md Phase 4)
-   - Specific region acronyms to click (NTS for "expected", then one surprising hit found after data loads)
-   - Backup plan if the live Claude API call stalls (pre-rendered explanation in `demo_cache/`)
-5. **Last 15 minutes of Phase 2:** Start drafting demo language for the surprising-finding moment — needs real data to identify, which is why this is your role.
-
-**Verification:**
-- Page 3 → select "NTS" → brain slice renders within 3 seconds (cached on second view)
-- Region mask is visibly aligned with diff signal in at least 3 sampled regions
-- `DEMO.md` exists with timed script
-
-**Anti-pattern guard:**
-- Do NOT load NIfTI files per-render. Use `@st.cache_resource` (not `@st.cache_data` — large objects).
-- Do NOT use `axis="coronal"` blindly — confirm the axis convention against one known region (e.g., NTS should appear in caudal brainstem on a coronal slice).
-- Do NOT crash the page if a region has no voxels — return `None` and have the UI show "no mask available" gracefully.
+- Do NOT split into `llm_explain.py` + `llm_chat.py` — keep one `llm.py` (matches current `CLAUDE.md` module map).
+- Do NOT add `get_brain_slice` into `analysis.py` — it lives in `brain_viz.py` per module map.
 
 ### Phase 2 integration gate (T+1:30, 5 min hard stop)
 
-All 4 merge to `main`. If any branch has merge conflicts in `analysis.py`, P1 + P4 resolve together — they own different functions, conflict should be trivial.
+All 3 merge to `main`. With combined P3 role, `analysis.py` has only one owner (P1) → no cross-branch conflicts expected. P3's two files (`llm.py`, `brain_viz.py`) are independent of P1/P2 files.
 
 **Definition of done for Phase 2:**
 - `streamlit run app.py` works on `main`
@@ -198,11 +191,11 @@ All 4 merge to `main`. If any branch has merge conflicts in `analysis.py`, P1 + 
 **Goal:** one person clicks through the full 2-minute demo flow on the merged app while the other three watch and call out bugs.
 
 ### Tasks
-- [ ] **P4 drives the screen**, P1/P2/P3 take notes on what's broken
+- [ ] **P3 drives the screen** (owns demo), P1/P2 take notes on what's broken
 - [ ] **Walk the actual 2-minute demo flow** exactly as scripted in `DEMO.md`
 - [ ] **List bugs in shared doc.** Triage into "must fix" / "nice to have"
-- [ ] **Identify the surprising finding region** from the real data — P4 updates `DEMO.md` with the actual acronym and a sentence about why it's surprising
-- [ ] **Each person fixes their own "must fix" bugs** — back to branches, merge in <20 min
+- [ ] **Identify the surprising finding region** from the real data — P3 updates `DEMO.md` with the actual acronym + a sentence on why it's surprising
+- [ ] **Each person fixes their own "must fix" bugs** — back to branches, merge in <20 min. If a Claude/viz bug AND a UI bug both land on P3 simultaneously, P2 picks up the UI side
 
 ### Verification
 - One full uninterrupted run of the 2-minute demo on `main` with no manual recovery
@@ -218,11 +211,13 @@ All 4 merge to `main`. If any branch has merge conflicts in `analysis.py`, P1 + 
 **Goal:** push the Claude integration from "explain a region" to "this is a thinking partner". This is where the criteria-2 (creativity) and criteria-5 (interpretability) points come from.
 
 ### Tasks (parallel)
-- [ ] **P3:** Wire `chat_about_data` (free-text Q&A) into a sidebar input on every page. Streams responses live. **This is the differentiator.**
-- [ ] **P3:** Add an "Auto-summarize" button on Page 1 that calls `explain_top_findings(top10)` and shows a 4-sentence study summary above the volcano.
-- [ ] **P2:** Polish — add a header image or logo, set page favicon, make sure the title doesn't wrap on a projector resolution (1920×1080).
-- [ ] **P1:** Add a "Download CSV" button on Page 2 (`st.download_button`) — costs almost nothing, scores well on usability.
-- [ ] **P4:** Rehearse demo **out loud, with a timer**, at least twice. Cut anything that pushes past 1:50 (gives 10s buffer).
+- [ ] **P3:** Add "Auto-summarize" button on Page 1 — calls `explain_top_findings(top10)`, shows 4-sentence study summary above the volcano. **Ship this first — easier than chat.**
+- [ ] **P3:** Rehearse demo **out loud, with a timer**, at least twice. Cut anything past 1:50 (10s buffer). P2 sits next to P3 during rehearsal to catch UI snags live.
+- [ ] **P3 (stretch, only if Auto-summarize lands ≤T+2:15):** Wire `chat_about_data` (streaming Q&A) into sidebar — **this is the differentiator**, but skip if running tight.
+- [ ] **P2:** Build the chat sidebar UI shell (`st.text_input` + `st.write_stream` placeholder) so P3 can plug in `chat_about_data` with zero UI work if Block C lands.
+- [ ] **P2:** Polish — header image/logo, page favicon, title doesn't wrap at 1920×1080.
+- [ ] **P1:** Add "Download CSV" button on Page 2 (`st.download_button`) — cheap, scores on usability.
+- [ ] **P1:** If P3 is overloaded, pre-cache 5 region explanations to `demo_cache/*.txt` (call `explain_region` from CLI for top-5 hits) as demo backup.
 
 ### Verification
 - Free-text question in sidebar produces a streaming response with relevant content
@@ -241,11 +236,11 @@ All 4 merge to `main`. If any branch has merge conflicts in `analysis.py`, P1 + 
 
 ### Tasks
 - [ ] **All:** `git status` clean on `main`. Tag: `git tag demo-final && git push --tags`
-- [ ] **P4:** present the demo to the team one final time
+- [ ] **P3:** present the demo to the team one final time
 - [ ] **All:** identify the *single* most likely failure mode and mitigate (e.g., API rate limit → pre-cache 5 region explanations into `demo_cache/`; WiFi flaky → cache more aggressively)
 - [ ] **P2:** open `app.py` in browser, leave the tab on Page 1, do NOT close it
 - [ ] **P3:** confirm API key still works with a fresh call (credits not exhausted)
-- [ ] **P4:** print `DEMO.md` to phone or paper
+- [ ] **P3:** print `DEMO.md` to phone or paper
 
 ### Verification
 - App is running, on Page 1, ready to demo
@@ -281,7 +276,8 @@ All five greps return nothing AND streamlit responds 200 → ship it.
 |---|---|---|
 | API credits exhausted mid-demo | Medium | Pre-cache 5 region explanations to disk in Phase 5; fall back to disk if API fails |
 | WiFi drops during demo | Medium | All NIfTI files local; cached Claude responses local; only freeform chat needs internet |
-| Merge conflict at T+1:30 | Low | P1/P4 split `analysis.py` by function name; everyone else owns one file |
+| Merge conflict at T+1:30 | Very low | Each person owns disjoint files (P1=`analysis.py`+`data_loader.py`; P2=`app.py`+`CLAUDE.md`; P3=`llm.py`+`brain_viz.py`+`DEMO.md`) |
+| P3 overloaded (combined role) | **Medium** | Block C (chat streaming) and anatomy panel are explicit stretch — drop without guilt. P2 absorbs chat sidebar shell; P1 absorbs demo-cache fallback |
 | Streamlit selection event broken on a Streamlit version mismatch | Low | Phase 1 smoke test catches this; fallback = `st.selectbox` over acronym list |
 | Column names in CSV ≠ assumed | Medium | Fixed in P1's first 10 minutes by re-running inspect snippet from PLAN.md Phase 2 |
 | Demo runs over 2:00 | High | Phase 4 ends with two timed rehearsals; cut features, not narration |
