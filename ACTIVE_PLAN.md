@@ -1,19 +1,18 @@
 # Explainable Brains — Active Plan
-_Last updated: May 26 ~18:40 · Handfix landed (96d9688); Agent 4 (Block C) landed (50fe81e); Agents 2 & 3 in-flight in parallel terminals_
+_Last updated: May 26 ~18:55 · Agent 3 (Block B) landed (31a004f); dotenv auto-load shipped (8bae260); leaked key rotated; only Agent 2 (Block A) still in flight_
 
 ## Current Focus
-On branch `p3-claude-viz`. Pre-flight (77b33e9), Block C DEMO.md (50fe81e), significance handfix + Styler.map (96d9688) all shipped. Agent 2 (Block A llm.py) running in user's other terminal; Agent 3 (Block B brain_viz) in flight. **Next:** wait for 2 & 3 to commit → run Agent 5 verification gate.
+On branch `p3-claude-viz`, 5 commits ahead of origin. Blocks B+C done, handfix done, `.env` auto-loads via `python-dotenv` (smoke 19/19 from fresh shell). Only outstanding code work: **Agent 2 — Block A `llm.py`** still running in user's other terminal. Once it commits, run Agent 5 verification gate → Agent 6 → Agent 7 merge.
 
 ## Tasks
 
 ### In Progress
-- [ ] **Agent 2 — Block A `llm.py`** — cached `explain_region` + `explain_top_findings` with prompt cache. (running in user's other terminal)
-- [ ] **Agent 3 — Block B `brain_viz.py`** — `st.cache_resource` volumes, `@st.cache_data` get_slice, return None on missing/empty, `render_overlay` helper. (in-flight as ruflo-core:coder)
+- [ ] **Agent 2 — Block A `llm.py`** — cached `explain_region` + `explain_top_findings` with prompt cache. Heads-up: `llm.py` now imports `dotenv` at top (commit 8bae260) — Agent 2 may hit a trivial conflict on the import block.
 
 ### Up Next — P3 subagent launch queue
-5. Agent 5 — verification + anti-pattern grep sweep (§9 integration checklist) — after Agents 2 & 3 land
-6. Agent 6 — Phase 3/4 surprising-region pick + summarize button wire-up + `demo_cache/*.txt` prewarm
-7. Agent 7 — merge `p3-claude-viz` → `main`
+5. **Agent 5** — verification + anti-pattern grep sweep (§9 integration checklist) — fire as soon as Agent 2 lands
+6. **Agent 6** — Phase 3/4 surprising-region pick + summarize button wire-up + `demo_cache/*.txt` prewarm
+7. **Agent 7** — merge `p3-claude-viz` → `main`
 
 ### Up Next — after branching (per role)
 - [ ] **P1** (`p1-data`): see PLAN_4PERSON.md §Phase 2 P1
@@ -23,6 +22,8 @@ On branch `p3-claude-viz`. Pre-flight (77b33e9), Block C DEMO.md (50fe81e), sign
 - [ ] Run `/demo` — pick 3 best regions, rehearse 2-min script
 
 ### Done
+- [x] **dotenv auto-load (May 26 ~18:55, commit 8bae260)** — `load_dotenv()` at top of `llm.py` + `smoke_test.py`; smoke now passes 19/19 from fresh shell with no shell export. Leaked key rotated, `.env` updated.
+- [x] **Agent 3 — Block B `brain_viz.py` (May 26 ~18:50, commit 31a004f)** — `@st.cache_resource _load_volumes()`, `@st.cache_data get_slice` (kept argmax centroid), returns None on missing/empty mask, `render_overlay()` helper (RdBu_r vmin=-3 vmax=3, Greens mask alpha=0.5, figsize 5×4). Voxel counts: NTS=772, ARH=386, LHA=1489. Anti-pattern grep `.get_data()` empty.
 - [x] **Significance handfix (May 26 ~18:38, commit 96d9688)** — `significant_corrected` → `significant_uncorrected` in `analysis.py:21,23` and `app.py:37,53`. Also fixed `Styler.applymap` → `.map` (pandas 3.x rename) so Ranking tab renders.
 - [x] **Agent 4 — Block C (May 26 ~18:35, commit 50fe81e)** — `DEMO.md` skeleton from P3_PLAN §7 template (26 lines, [SURPRISING_REGION_TBD] placeholder preserved); `demo_cache/.gitkeep` + `demo_cache/screenshots/.gitkeep` created
 - [x] **Agent 1 — Pre-flight (May 26 ~18:20, commit 77b33e9)** — branched `p3-claude-viz`; `data/` symlink restored; `brain_viz.py` `label`→`id` (NTS mask 772 voxels); `llm.py` `p_corrected`→`p_value`+`p_uncorr`; smoke 19/19 green; streamlit running
@@ -59,7 +60,7 @@ On branch `p3-claude-viz`. Pre-flight (77b33e9), Block C DEMO.md (50fe81e), sign
 - **P3 — Claude + Viz + Demo:** `llm.py`, `brain_viz.py`, `DEMO.md` — branch `p3-claude-viz`. Heaviest role; chat-streaming + anatomy panel are stretch-only.
 
 ## Blockers & Manual Input Needed
-- [ ] 🔑 **`ANTHROPIC_API_KEY` shell persistence** — currently exported in current shell only. Add to `~/.zshrc` or project `.env` (gitignored) before next session so subagents don't trip the smoke test.
+_(none — `.env` rotated and auto-loaded via dotenv)_
 
 ## Backlog (if time allows, in priority order)
 - [ ] Add volcano labels for top 5 uncorrected hits (plotly `text` param)
@@ -81,3 +82,6 @@ On branch `p3-claude-viz`. Pre-flight (77b33e9), Block C DEMO.md (50fe81e), sign
 | May 26 ~18:30 (wrap-up) | Wrote `subagents_plan.md` — self-contained launch sheet for the remaining 6 agents (handfix + Agents 2/3/4 parallel + 5 verify + 6 phase3-4 + 7 merge). Each section is a paste-ready prompt with verification + commit message. |
 | May 26 ~18:35 | Agent 4 (ruflo-core:coder) landed Block C on `p3-claude-viz` (50fe81e): `DEMO.md` 26 lines from P3_PLAN §7 template + `demo_cache/{,screenshots/}.gitkeep`. [SURPRISING_REGION_TBD] placeholder preserved for Agent 6. |
 | May 26 ~18:38 (this session) | Significance handfix (96d9688): `significant_corrected` → `significant_uncorrected` in analysis.py + app.py. Bonus: fixed pandas 3.x `Styler.applymap` removal → `.map` so Ranking tab no longer errors on import. Agent 2 reported already running in user's other terminal → not double-launched here. |
+| May 26 ~18:42 (wrap-up) | Session "agent4" closed. Launched Agent 4 (Block C) via /plan → commit 50fe81e. Plan reconciled. Outstanding: Agents 2 & 3 still in-flight in other terminals; once both commit, run Agent 5 verification gate, then Agent 6 (phase 3+4), then Agent 7 (merge to main). |
+| May 26 ~18:50 (this session) | Agent 3 (ruflo-core:coder) landed Block B on `p3-claude-viz` (31a004f): replaced module `_cache` dict with `@st.cache_resource _load_volumes()`, wrapped `get_slice` in `@st.cache_data`, returns None on missing/empty, added `render_overlay()`. NTS=772 / ARH=386 / LHA=1489 voxels. Waiting on Agent 2 (llm.py) to land, then run Agent 5 verification. |
+| May 26 ~18:55 (this session) | User pasted ANTHROPIC_API_KEY in plaintext → flagged as leaked, told them to rotate. Added `load_dotenv()` to `llm.py` + `smoke_test.py` (commit 8bae260); smoke now 19/19 from fresh shell with no export. User confirmed `.env` updated with rotated key. Only Agent 2 (Block A llm.py) remains in flight. |
