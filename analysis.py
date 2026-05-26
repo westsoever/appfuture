@@ -18,9 +18,5 @@ def volcano_data(stats: pd.DataFrame) -> pd.DataFrame:
     df = stats[stats["is_lowest_level"] == True].copy()
     df["neg_log10_p"] = -np.log10(df["p_corrected"].clip(lower=1e-10))
     df["significance"] = "ns"
-    df.loc[df["significant_corrected"] == True, "significance"] = "corrected"
-    df.loc[
-        (df["significant_corrected"] == False) & (df["p_corrected"] < 0.05),
-        "significance",
-    ] = "uncorrected"
+    df.loc[df["significant_uncorrected"] == True, "significance"] = "uncorrected"
     return df

@@ -34,7 +34,7 @@ with tab1:
     fig.add_vline(x=0, line_dash="dash", line_color="gray")
 
     # Label top-5 hits by effect size
-    top5 = (vdf[vdf["significant_corrected"] == True]
+    top5 = (vdf[vdf["significant_uncorrected"] == True]
             .assign(abs_fc=lambda d: d["log2_fold_change"].abs())
             .nlargest(5, "abs_fc"))
     for _, r in top5.iterrows():
@@ -49,14 +49,14 @@ with tab1:
 
 # ── Tab 2: Ranking table ──────────────────────────────────────────────────────
 with tab2:
-    sig_only = st.toggle("Show significant (corrected) only", value=True)
-    df = ranked[ranked["significant_corrected"] == True] if sig_only else ranked
+    sig_only = st.toggle("Show significant (uncorrected) only", value=True)
+    df = ranked[ranked["significant_uncorrected"] == True] if sig_only else ranked
     display = df[["acronym", "region_name", "log2_fold_change", "p_corrected",
                   "mean_A", "mean_B", "n_A_eff", "n_B_eff"]].copy()
     display.columns = ["Acronym", "Region", "log₂FC (Sema/Veh)", "p (corrected)",
                        "Mean Sema", "Mean Veh", "n Sema", "n Veh"]
     st.dataframe(
-        display.reset_index(drop=True).style.applymap(
+        display.reset_index(drop=True).style.map(
             lambda v: "color: #d6604d; font-weight:bold" if isinstance(v, float) and v > 0 else
                       ("color: #4393c3; font-weight:bold" if isinstance(v, float) and v < 0 else ""),
             subset=["log₂FC (Sema/Veh)"],
