@@ -1,19 +1,17 @@
 # Explainable Brains — Active Plan
-_Last updated: May 26 ~18:25 · Branch `p3-claude-viz` live, Agent 1 preflight landed (77b33e9), smoke green, streamlit launched_
+_Last updated: May 26 ~18:40 · Handfix landed (96d9688); Agent 4 (Block C) landed (50fe81e); Agents 2 & 3 in-flight in parallel terminals_
 
 ## Current Focus
-On branch `p3-claude-viz`. Pre-flight fixes shipped: `data/` symlink restored, `brain_viz.py` uses `id` (NTS mask=772 voxels), `llm.py` uses `p_value` as `p_uncorr`. Smoke test 19/19 green with API key exported. Streamlit booted. **Next:** still need `significant_corrected` → `significant_uncorrected` fix in `analysis.py` + `app.py` (P3_PLAN §2 anti-pattern), then launch Agents 2–4 (Block A llm.py prompt-cache + explain_top_findings, Block B brain_viz.py overlay, Block C DEMO.md skeleton) in parallel.
+On branch `p3-claude-viz`. Pre-flight (77b33e9), Block C DEMO.md (50fe81e), significance handfix + Styler.map (96d9688) all shipped. Agent 2 (Block A llm.py) running in user's other terminal; Agent 3 (Block B brain_viz) in flight. **Next:** wait for 2 & 3 to commit → run Agent 5 verification gate.
 
 ## Tasks
 
 ### In Progress
-- [ ] **Fix significance flag** — `significant_corrected` is all-0 in data. Replace in `analysis.py:21,23` and `app.py:37,53` with `significant_uncorrected`. Verify volcano + ranking still render.
+- [ ] **Agent 2 — Block A `llm.py`** — cached `explain_region` + `explain_top_findings` with prompt cache. (running in user's other terminal)
+- [ ] **Agent 3 — Block B `brain_viz.py`** — `st.cache_resource` volumes, `@st.cache_data` get_slice, return None on missing/empty, `render_overlay` helper. (in-flight as ruflo-core:coder)
 
 ### Up Next — P3 subagent launch queue
-2. Agent 2 — Block A `llm.py` (add `explain_top_findings` with prompt cache; keep `explain_region` as-is)
-3. Agent 3 — Block B `brain_viz.py` (`st.cache_resource` for volumes, `render_overlay` helper)  ‖ parallel with 2
-4. Agent 4 — Block C `DEMO.md` skeleton (per P3_PLAN.md §7 template)  ‖ parallel with 2,3
-5. Agent 5 — verification + anti-pattern grep sweep (§9 integration checklist)
+5. Agent 5 — verification + anti-pattern grep sweep (§9 integration checklist) — after Agents 2 & 3 land
 6. Agent 6 — Phase 3/4 surprising-region pick + summarize button wire-up + `demo_cache/*.txt` prewarm
 7. Agent 7 — merge `p3-claude-viz` → `main`
 
@@ -25,6 +23,8 @@ On branch `p3-claude-viz`. Pre-flight fixes shipped: `data/` symlink restored, `
 - [ ] Run `/demo` — pick 3 best regions, rehearse 2-min script
 
 ### Done
+- [x] **Significance handfix (May 26 ~18:38, commit 96d9688)** — `significant_corrected` → `significant_uncorrected` in `analysis.py:21,23` and `app.py:37,53`. Also fixed `Styler.applymap` → `.map` (pandas 3.x rename) so Ranking tab renders.
+- [x] **Agent 4 — Block C (May 26 ~18:35, commit 50fe81e)** — `DEMO.md` skeleton from P3_PLAN §7 template (26 lines, [SURPRISING_REGION_TBD] placeholder preserved); `demo_cache/.gitkeep` + `demo_cache/screenshots/.gitkeep` created
 - [x] **Agent 1 — Pre-flight (May 26 ~18:20, commit 77b33e9)** — branched `p3-claude-viz`; `data/` symlink restored; `brain_viz.py` `label`→`id` (NTS mask 772 voxels); `llm.py` `p_corrected`→`p_value`+`p_uncorr`; smoke 19/19 green; streamlit running
 - [x] Designed folder structure
 - [x] Written `CLAUDE.md` (module map + data rules)
@@ -79,3 +79,5 @@ On branch `p3-claude-viz`. Pre-flight fixes shipped: `data/` symlink restored, `
 | May 26 ~22:00 (agents session) | Audited current code vs `P3_PLAN.md`. Found: (a) `data/` symlink missing despite being marked Done; (b) `llm.py` uses `p_corrected` and plan's `p_uncorrected` column doesn't exist — real col is `p_value`. Split P3 into 7 launchable subagent prompts (setup → A/B/C parallel → verify → phase3-4 → merge) ready to fire one-by-one next session |
 | May 26 ~18:25 (this session) | Agent 1 (ruflo-core:coder) executed pre-flight on branch `p3-claude-viz` (77b33e9): restored `data/` symlink, `brain_viz.py` `label`→`id` (NTS mask 772 voxels, was 0), `llm.py` switched to `p_value`/`p_uncorr`. API key exported, smoke test 19/19 green, streamlit launched. Significance-flag fix still pending; Agents 2–4 queued. |
 | May 26 ~18:30 (wrap-up) | Wrote `subagents_plan.md` — self-contained launch sheet for the remaining 6 agents (handfix + Agents 2/3/4 parallel + 5 verify + 6 phase3-4 + 7 merge). Each section is a paste-ready prompt with verification + commit message. |
+| May 26 ~18:35 | Agent 4 (ruflo-core:coder) landed Block C on `p3-claude-viz` (50fe81e): `DEMO.md` 26 lines from P3_PLAN §7 template + `demo_cache/{,screenshots/}.gitkeep`. [SURPRISING_REGION_TBD] placeholder preserved for Agent 6. |
+| May 26 ~18:38 (this session) | Significance handfix (96d9688): `significant_corrected` → `significant_uncorrected` in analysis.py + app.py. Bonus: fixed pandas 3.x `Styler.applymap` removal → `.map` so Ranking tab no longer errors on import. Agent 2 reported already running in user's other terminal → not double-launched here. |
