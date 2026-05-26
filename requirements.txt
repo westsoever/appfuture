@@ -1,0 +1,9 @@
+streamlit
+plotly
+pandas
+numpy
+SimpleITK
+anthropic
+python-dotenv
+boto3
+s3fs
