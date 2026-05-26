@@ -2,4 +2,10 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-.env
+
+# Data files (large / private — download via download_data.py)
+data/
+vibraint/data/
+
+# Internal tooling
+ruvector.db
